@@ -26,7 +26,7 @@ function get_platform() {
         exit 1;
     fi
 
-    echo $_platform;
+    echo "windows";
 }
 
 function get_version() {
