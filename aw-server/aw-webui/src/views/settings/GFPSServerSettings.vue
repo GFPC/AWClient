@@ -1,0 +1,84 @@
+<template lang="pug">
+  div
+    h4.mb-3 GFPS Server Settings
+    b-alert(show) #[b Note:] These settings are meant for GFPS Server
+
+    b-form-group(label="Enabled" label-cols-md=3 description="If enabled, data of activity will be sent to the server.")
+      div
+        b-form-checkbox.float-right.ml-2(v-model="gfpsEnabled" switch @change="gfpsEnabled = $event")
+
+    b-form-group(label="GFPS Server Address" label-cols-md=3 description="The address of the GFPS Server.")
+      div
+        div.d-inline-flex.mb-3
+          span IP
+        div.d-inline-flex
+          b-input.float-right.ml-4(v-model="gfpsServerIP" type="text", placeholder="127.0.0.1")
+      div.d-inline-flex.mb-1
+        div.d-inline-flex
+          span Port
+        div.d-inline-flex
+          b-input.float-right.ml-4(v-model="gfpsServerPort" type="number", placeholder="8080")
+    div.row
+      div.col-sm-12
+        b-btn.float-right(@click="this.saveClasses", variant="success" :disabled="!this.unsavedChanges")
+          | Save
+</template>
+
+<script lang="ts">
+import { useSettingsStore } from '~/stores/settings';
+
+export default {
+  data() {
+    return {
+      gfpsEnabled: false,
+      gfpsServerIP: '',
+      gfpsServerPort: '',
+      settingsStore: useSettingsStore(),
+      unsavedChanges: false,
+    };
+  },
+  computed: {
+  },
+  watch: {
+    gfpsEnabled: function (value) {
+      this.unsavedChangesListener()
+    },
+    gfpsServerIP: function (value) {
+      this.unsavedChangesListener()
+    },
+    gfpsServerPort: function (value) {
+      this.unsavedChangesListener()
+    },
+  },
+  mounted() {
+    this.init();
+  },
+  methods: {
+    async init() {
+      const settingsStore = useSettingsStore();
+      this.gfpsEnabled = settingsStore.gfpsEnabled;
+      this.gfpsServerIP = settingsStore.gfpsServerIP;
+      this.gfpsServerPort = settingsStore.gfpsServerPort;
+    },
+    async saveClasses() {
+      await this.settingsStore.update({
+        gfpsEnabled: this.gfpsEnabled,
+        gfpsServerIP: this.gfpsServerIP,
+        gfpsServerPort: this.gfpsServerPort,
+      })
+      this.unsavedChanges = false
+    },
+    unsavedChangesListener() {
+      if (
+        this.gfpsServerIP !== this.settingsStore.gfpsServerIP ||
+        this.gfpsServerPort !== this.settingsStore.gfpsServerPort ||
+        this.gfpsEnabled !== this.settingsStore.gfpsEnabled
+      ) {
+        this.unsavedChanges = true;
+      } else {
+        this.unsavedChanges = false;
+      }
+    },
+  },
+};
+</script>
