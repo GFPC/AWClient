@@ -14,9 +14,10 @@ SHELL := /usr/bin/env bash
 SUBMODULES := aw-core aw-client aw-qt aw-server aw-server-rust aw-watcher-afk aw-watcher-window
 
 # Exclude aw-server-rust if SKIP_SERVER_RUST is true
-ifeq ($(SKIP_SERVER_RUST),true)
-	SUBMODULES := $(filter-out aw-server-rust,$(SUBMODULES))
-endif
+#ifeq ($(SKIP_SERVER_RUST),true)
+#	SUBMODULES := $(filter-out aw-server-rust,$(SUBMODULES))
+#endif
+SUBMODULES := $(filter-out aw-server-rust,$(SUBMODULES))
 # Include extras if AW_EXTRAS is true
 ifeq ($(AW_EXTRAS),true)
 	SUBMODULES := $(SUBMODULES) aw-notify aw-watcher-input

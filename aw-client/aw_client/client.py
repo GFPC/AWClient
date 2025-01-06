@@ -283,10 +283,18 @@ class ActivityWatchClient:
             print(
                 Fore.LIGHTYELLOW_EX + "GFP->POINT(0x00)" + Fore.RESET + ": creating bucket on gfps" + " For user " + str(
                     self.uuid), end="")
-            self._ext_post(f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint,
-                           {**event.to_json_dict(),"uuid": self.uuid}
-                           )
-
+            try:
+                self._ext_post(f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint,
+                               {**event.to_json_dict(), "uuid": self.uuid}
+                               )
+            except Exception as e:
+                print(
+                    Fore.LIGHTYELLOW_EX + "GFP->POINT(0x19)" + Fore.RESET + ": creating bucket on gfps" + " For user " + str(
+                        self.uuid), end="\n")
+                bucket = self.get_buckets()[bucket_id]
+                print(json.dumps(bucket,indent=4))
+                self.create_bucket(bucket_id, bucket["type"])
+                
         if queued:
             # Pre-merge heartbeats
             if bucket_id not in self.last_heartbeat:
@@ -323,7 +331,7 @@ class ActivityWatchClient:
         return self._get("buckets/").json()
 
     def create_bucket(self, bucket_id: str, event_type: str, queued=False):
-        print(Fore.LIGHTWHITE_EX+"GFP->: Creating bucket ",end="")
+        print(Fore.LIGHTWHITE_EX+"GFP->: Creating bucket " + str(bucket_id) + " " + str(event_type) + " ",end="")
         # get setting: gfps enabled,get setting: gfps_ip,gfps_port
         settings = self._get("settings", {}).json()
         gfps_enabled = False

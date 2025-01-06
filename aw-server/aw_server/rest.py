@@ -416,22 +416,46 @@ class UUIDResource(Resource):
 class GfpsUserResource(Resource):
     def post(self):
         #check settings
-        if not current_app.api.get_setting("gfpsServerIP"):
+        if not current_app.api.get_setting("gfpsServerIP") or not current_app.api.get_setting("gfpsServerPort"):
             return {"error": "Address for GFPS server not set"}, 200
         data = request.get_json()
-        req = requests.post("http://"+current_app.api.get_setting("gfpsServerIP")+":"+str(current_app.api.get_setting("gfpsServerPort"))+"/api/0/user", json=data,headers={'Content-Type': 'application/json'})
-        return json.loads(req.text)
+        try:
+            req = requests.post("http://" + current_app.api.get_setting("gfpsServerIP") + ":" + str(
+                current_app.api.get_setting("gfpsServerPort")) + "/api/0/user", json=data,
+                                headers={'Content-Type': 'application/json'})
+            return json.loads(req.text)
+        except Exception as e:
+            return {"status": "error", "message": str(e)}, 200
     def put(self):
         #check settings
-        if not current_app.api.get_setting("gfpsServerIP"):
+        if not current_app.api.get_setting("gfpsServerIP") or not current_app.api.get_setting("gfpsServerPort"):
             return {"error": "Address for GFPS server not set"}, 200
         data = request.get_json()
-        req = requests.put("http://"+current_app.api.get_setting("gfpsServerIP")+":"+str(current_app.api.get_setting("gfpsServerPort"))+"/api/0/user", json=data,headers={'Content-Type': 'application/json'})
-        return json.loads(req.text)
+        try:
+            req = requests.put("http://" + current_app.api.get_setting("gfpsServerIP") + ":" + str(
+                current_app.api.get_setting("gfpsServerPort")) + "/api/0/user", json=data,
+                               headers={'Content-Type': 'application/json'})
+            return json.loads(req.text)
+        except Exception as e:
+            return {"status": "error", "message": str(e)}, 200
 @api.route("/0/gfps/user/<string:user_uuid>")
 class GfpsUserUUIDResource(Resource):
     def get(self, user_uuid):
         if not current_app.api.get_setting("gfpsServerIP"):
             return {"error": "Address for GFPS server not set"}, 200
-        return requests.get("http://" + current_app.api.get_setting("gfpsServerIP") + ":" + str(current_app.api.get_setting(
-            "gfpsServerPort")) + "/api/0/user/" + user_uuid, headers={'Content-Type': 'application/json'}).json()
+        try:
+            return requests.get("http://" + current_app.api.get_setting("gfpsServerIP") + ":" + str(current_app.api.get_setting(
+                "gfpsServerPort")) + "/api/0/user/" + user_uuid, headers={'Content-Type': 'application/json'}).json()
+        except Exception as e:
+            return {"status": "error", "message": str(e)}, 200
+
+@api.route("/0/gfps/status")
+class GfpsStatusResource(Resource):
+    def get(self):
+        if not current_app.api.get_setting("gfpsServerIP") or not current_app.api.get_setting("gfpsServerPort"):
+            return {"error": "Address for GFPS server not set"}, 200
+        try:
+            return requests.get("http://" + current_app.api.get_setting("gfpsServerIP") + ":" + str(current_app.api.get_setting(
+                "gfpsServerPort")) + "/api/0/status", headers={'Content-Type': 'application/json'}).json()
+        except Exception as e:
+            return {"status": "error"}, 200

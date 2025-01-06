@@ -39,7 +39,7 @@ div(:class="{'fixed-top-padding': fixedTopMenu}")
             icon(name="stream")
             | Timeline
 
-        b-nav-item(to="/stopwatch")
+        //b-nav-item(to="/stopwatch")
           div.px-2.px-lg-1
             icon(name="stopwatch")
             | Stopwatch
@@ -54,7 +54,7 @@ div(:class="{'fixed-top-padding': fixedTopMenu}")
           div.px-2.px-lg-1
             icon(name="user")
             | Account
-        b-nav-item-dropdown
+        //b-nav-item-dropdown
           template(slot="button-content")
             div.d-inline.px-2.px-lg-1
               icon(name="tools")

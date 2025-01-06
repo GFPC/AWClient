@@ -34,9 +34,9 @@ div
 
   CategorizationSettings
 
-  hr
+  //hr
 
-  DeveloperSettings
+  //DeveloperSettings
 
   hr
 

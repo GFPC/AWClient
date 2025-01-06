@@ -9,7 +9,7 @@ div#wrapper(v-if="loaded")
         new-release-notification(v-if="isNewReleaseCheckEnabled")
         router-view
 
-  aw-footer
+  //aw-footer
 </template>
 
 <script lang="ts">
@@ -65,9 +65,6 @@ export default {
 
   mounted: async function () {
     const serverStore = useServerStore();
-    const userStore = useUserStore();
-
-    await userStore.load();
     await serverStore.getInfo();
   },
 };

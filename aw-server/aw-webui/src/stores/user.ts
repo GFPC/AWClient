@@ -19,21 +19,24 @@ export const useUserStore = defineStore('user', {
     _loaded: false,
   }),
   actions: {
+    async ensureLoaded() {
+      if (!this._loaded) {
+        await this.load();
+      }
+    },
     async load() {
       const client = getClient();
-      await client.req.get('/0/uuid').then(response => {
-        this.uuid = response.data.uuid;
-        client.req.get('/0/gfps/user/' + this.uuid).then(response => {
-          if (!response.data.error) {
-            this.username = response.data.user.username;
-            this.data = response.data.user.data;
-            this.created = response.data.user.created;
-            this.isExistOnServer = true;
-          } else {
-            this.isExistOnServer = false;
-          }
-        });
-      });
+      this.uuid = await client.req.get('/0/uuid');
+      this.uuid = this.uuid.data.uuid;
+      const user_data = await client.req.get('/0/gfps/user/' + this.uuid);
+      if(!user_data.data.error) {
+        this.username = user_data.data.user.username;
+        this.created = user_data.data.user.created;
+        this.isExistOnServer = true;
+      } else {
+        this.isExistOnServer = false;
+      }
+      this._loaded = true;
     },
     async register(data) {
       const client = getClient();
