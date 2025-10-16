@@ -164,6 +164,45 @@ class ActivityWatchClient:
         headers = {"Content-type": "application/json"}
         return req.delete(url, data=json.dumps(data), headers=headers)
 
+    def sendGFPS(self, endpoint, method, data):
+        settings = settings = self._get("settings", {}).json()
+        gfps_enabled = False
+        if not settings.get("gfpsEnabled") is None:
+            gfps_enabled = settings["gfpsEnabled"]
+        gfps_ip = ""
+        if not settings.get("gfpsServerIP") is None:
+            gfps_ip = settings["gfpsServerIP"]
+        gfps_port = ""
+        if not settings.get("gfpsServerPort") is None:
+            gfps_port = settings["gfpsServerPort"]
+
+        if not gfps_enabled:
+            return False
+
+        url = f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint
+        headers = {"Content-type": "application/json"}
+        if method == "POST":
+            try:
+                return req.post(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}, 200
+        elif method == "PUT":
+            try:
+                return req.put(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}, 200
+        elif method == "DELETE":
+            try:
+                return req.delete(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}, 200
+        elif method == "GET":
+            try:
+                return req.get(url)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}, 200
+        raise Exception("Invalid method")
+
     def get_info(self):
         """Returns a dict currently containing the keys 'hostname' and 'testing'."""
         endpoint = "info"
@@ -269,7 +308,7 @@ class ActivityWatchClient:
         print(Fore.LIGHTMAGENTA_EX + "\rGFP->: heartbeat " + Fore.RESET + str(bucket_id) + " " + str(pulsetime),end=" ")
         endpoint = f"buckets/{bucket_id}/heartbeat?pulsetime={pulsetime}"
         _commit_interval = commit_interval or self.commit_interval
-        settings = self._get("settings", {}).json()
+        """settings = self._get("settings", {}).json()
         gfps_enabled = False
         if "gfpsEnabled" in settings:
             gfps_enabled = settings["gfpsEnabled"]
@@ -284,9 +323,7 @@ class ActivityWatchClient:
                 Fore.LIGHTYELLOW_EX + "GFP->POINT(0x00)" + Fore.RESET + ": creating bucket on gfps" + " For user " + str(
                     self.uuid), end="")
             try:
-                self._ext_post(f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint,
-                               {**event.to_json_dict(), "uuid": self.uuid}
-                               )
+                self.sendGFPS(f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint, "POST", {**event.to_json_dict(), "uuid": self.uuid})
             except Exception as e:
                 print(
                     Fore.LIGHTYELLOW_EX + "GFP->POINT(0x19)" + Fore.RESET + ": creating bucket on gfps" + " For user " + str(
@@ -294,6 +331,7 @@ class ActivityWatchClient:
                 bucket = self.get_buckets()[bucket_id]
                 print(json.dumps(bucket,indent=4))
                 self.create_bucket(bucket_id, bucket["type"])
+"""
                 
         if queued:
             # Pre-merge heartbeats
@@ -345,14 +383,21 @@ class ActivityWatchClient:
             gfps_port = settings["gfpsServerPort"]
         if gfps_enabled:
             print(Fore.LIGHTYELLOW_EX + "GFP->POINT(0x00)"+ Fore.RESET+": creating bucket on gfps" + " For user " + str(self.uuid),end="")
-            self._ext_post(f"http://{gfps_ip}:{gfps_port}/api/0/buckets/{bucket_id}",
+            """self._ext_post(f"http://{gfps_ip}:{gfps_port}/api/0/buckets/{bucket_id}",
                            {
                                "client": self.client_name,
                                "hostname": self.client_hostname,
                                "type": event_type,
                                "uuid": self.uuid
                            }
-                           )
+                           )"""
+            response = self.sendGFPS("buckets/" + bucket_id, "POST", {
+                               "client": self.client_name,
+                               "hostname": self.client_hostname,
+                               "type": event_type,
+                               "uuid": self.uuid
+                           })
+            print(response)
 
         if queued:
             self.request_queue.register_bucket(bucket_id, event_type)
@@ -364,7 +409,6 @@ class ActivityWatchClient:
                 "type": event_type,
             }
             self._post(endpoint, data)
-        print()
 
     def delete_bucket(self, bucket_id: str, force: bool = False):
         self._delete(f"buckets/{bucket_id}" + ("?force=1" if force else ""))

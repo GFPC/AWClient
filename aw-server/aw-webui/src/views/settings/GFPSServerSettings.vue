@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import { useSettingsStore } from '~/stores/settings';
-import { getClient } from "@/util/awclient.ts";
+import { getClient } from '@/util/awclient.ts';
 
 export default {
   data() {
@@ -48,20 +48,19 @@ export default {
       gfpsServerPort: '',
       settingsStore: useSettingsStore(),
       unsavedChanges: false,
-      connection: 'Not tested'
+      connection: 'Not tested',
     };
   },
-  computed: {
-  },
+  computed: {},
   watch: {
     gfpsEnabled: function (value) {
-      this.unsavedChangesListener()
+      this.unsavedChangesListener();
     },
     gfpsServerIP: function (value) {
-      this.unsavedChangesListener()
+      this.unsavedChangesListener();
     },
     gfpsServerPort: function (value) {
-      this.unsavedChangesListener()
+      this.unsavedChangesListener();
     },
   },
   mounted() {
@@ -79,8 +78,8 @@ export default {
         gfpsEnabled: this.gfpsEnabled,
         gfpsServerIP: this.gfpsServerIP,
         gfpsServerPort: this.gfpsServerPort,
-      })
-      this.unsavedChanges = false
+      });
+      this.unsavedChanges = false;
     },
     unsavedChangesListener() {
       if (
@@ -97,15 +96,13 @@ export default {
       const client = getClient();
 
       this.connection = 'Testing...';
-      await client.req
-        .get('/0/gfps/status' )
-        .then(response => {
-          if(response.data.status === 'ok') {
-            this.connection = 'Success'
-          } else {
-            this.connection = 'Failed'
-          }
-        });
+      await client.req.get('/0/gfps/status').then(response => {
+        if (response.data.status === 'ok') {
+          this.connection = 'Success';
+        } else {
+          this.connection = 'Failed';
+        }
+      });
     },
   },
 };

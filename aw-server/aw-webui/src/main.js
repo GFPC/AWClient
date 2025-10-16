@@ -43,8 +43,9 @@ Vue.component('new-release-notification', () => import('./components/NewReleaseN
 Vue.component('user-satisfaction-poll', () => import('./components/UserSatisfactionPoll.vue'));
 Vue.component('aw-query-options', () => import('./components/QueryOptions.vue'));
 Vue.component('aw-select-categories', () => import('./components/SelectCategories.vue'));
-Vue.component('aw-select-categories-or-pattern', () =>
-  import('./components/SelectCategoriesOrPattern.vue')
+Vue.component(
+  'aw-select-categories-or-pattern',
+  () => import('./components/SelectCategoriesOrPattern.vue')
 );
 
 // Visualization components

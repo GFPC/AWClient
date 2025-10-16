@@ -69,6 +69,7 @@ def main():
     bucket_id = f"{client.client_name}_{client.client_hostname}"
     event_type = "currentwindow"
 
+
     client.create_bucket(bucket_id, event_type, queued=True)
 
     with client:

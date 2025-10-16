@@ -15,7 +15,7 @@ div#wrapper(v-if="loaded")
 <script lang="ts">
 import { useSettingsStore } from '~/stores/settings';
 import { useServerStore } from '~/stores/server';
-import { useUserStore } from "@/stores/user.ts";
+import { useUserStore } from '@/stores/user.ts';
 // if vite is used, you can import css file as module
 //import darkCssUrl from '../static/dark.css?url';
 //import darkCssContent from '../static/dark.css?inline';

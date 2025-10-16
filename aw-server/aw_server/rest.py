@@ -283,6 +283,7 @@ class HeartbeatResource(Resource):
     )
     @copy_doc(ServerAPI.heartbeat)
     def post(self, bucket_id):
+        print("HEARTBEAT")
         heartbeat = Event(**request.get_json())
 
         if "pulsetime" in request.args:

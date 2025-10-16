@@ -12,6 +12,9 @@ from typing import (
 )
 from uuid import uuid4
 
+import requests
+import requests as req
+
 import iso8601
 from aw_core.dirs import get_data_dir
 from aw_core.log import get_log_file_path
@@ -54,6 +57,44 @@ class ServerAPI:
         self.settings = Settings(testing)
         self.testing = testing
         self.last_event = {}  # type: dict
+
+    def sendGFPS(self,endpoint, method, data):
+        gfps_enabled = False
+        if not self.settings.get("gfpsEnabled") is None:
+            gfps_enabled = self.settings["gfpsEnabled"]
+        gfps_ip = ""
+        if not self.settings.get("gfpsServerIP") is None:
+            gfps_ip = self.settings["gfpsServerIP"]
+        gfps_port = ""
+        if not self.settings.get("gfpsServerPort") is None:
+            gfps_port = self.settings["gfpsServerPort"]
+
+        if not gfps_enabled:
+            return False
+
+        url = f"http://{gfps_ip}:{gfps_port}/api/0/" + endpoint
+        headers = {"Content-type": "application/json"}
+        if method == "POST":
+            try:
+                return req.post(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        elif method == "PUT":
+            try:
+                return req.put(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        elif method == "DELETE":
+            try:
+                return req.delete(url, data=bytes(json.dumps(data), "utf8"), headers=headers)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        elif method == "GET":
+            try:
+                return req.get(url)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}, 200
+        raise Exception("Invalid method")
 
     def get_info(self) -> Dict[str, Any]:
         """Get server info"""
@@ -252,27 +293,6 @@ class ServerAPI:
 
     @check_bucket_exists
     def heartbeat(self, bucket_id: str, heartbeat: Event, pulsetime: float) -> Event:
-        """
-        Heartbeats are useful when implementing watchers that simply keep
-        track of a state, how long it's in that state and when it changes.
-        A single heartbeat always has a duration of zero.
-
-        If the heartbeat was identical to the last (apart from timestamp), then the last event has its duration updated.
-        If the heartbeat differed, then a new event is created.
-
-        Such as:
-         - Active application and window title
-           - Example: aw-watcher-window
-         - Currently open document/browser tab/playing song
-           - Example: wakatime
-           - Example: aw-watcher-web
-           - Example: aw-watcher-spotify
-         - Is the user active/inactive?
-           Send an event on some interval indicating if the user is active or not.
-           - Example: aw-watcher-afk
-
-        Inspired by: https://wakatime.com/developers#heartbeats
-        """
         logger.debug(
             "Received heartbeat in bucket '{}'\n\ttimestamp: {}, duration: {}, pulsetime: {}\n\tdata: {}".format(
                 bucket_id,
@@ -282,15 +302,16 @@ class ServerAPI:
                 heartbeat.data,
             )
         )
-
-        # The endtime here is set such that in the event that the heartbeat is older than an
-        # existing event we should try to merge it with the last event before the heartbeat instead.
-        # FIXME: This (the endtime=heartbeat.timestamp) gets rid of the "heartbeat was older than last event"
-        #        warning and also causes a already existing "newer" event to be overwritten in the
-        #        replace_last call below. This is problematic.
-        # Solution: This could be solved if we were able to replace arbitrary events.
-        #           That way we could double check that the event has been applied
-        #           and if it hasn't we simply replace it with the updated counterpart.
+        gfps_response = self.sendGFPS(f"buckets/{bucket_id}/heartbeat?pulsetime={pulsetime}", "POST", data={**heartbeat.to_json_dict(), "uuid": get_device_id()})
+        if type(gfps_response) == req.Response:
+            resp_data = gfps_response.json()
+            if resp_data.get("message", "").startswith("There's no bucket"):
+                gfps_response = self.sendGFPS("buckets/" + bucket_id, "POST", {
+                               "client": self.db[bucket_id].metadata()["client"],
+                               "hostname": self.db[bucket_id].metadata()["hostname"],
+                               "type": self.db[bucket_id].metadata()["type"],
+                               "uuid": get_device_id()
+                           })
 
         last_event = None
         if bucket_id not in self.last_event:
@@ -299,7 +320,6 @@ class ServerAPI:
                 last_event = last_events[0]
         else:
             last_event = self.last_event[bucket_id]
-        print("last_event",last_event)
         if last_event:
             if last_event.data == heartbeat.data:
                 merged = heartbeat_merge(last_event, heartbeat, pulsetime)
@@ -331,7 +351,6 @@ class ServerAPI:
                     bucket_id
                 )
             )
-        print(heartbeat)
         self.db[bucket_id].insert(heartbeat)
         self.last_event[bucket_id] = heartbeat
         return heartbeat

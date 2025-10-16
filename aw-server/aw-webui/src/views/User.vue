@@ -13,6 +13,10 @@
           input.form-control(type="text", v-model="username")
       div.form-row
         div.form-group.col-md-6
+          | Team ID
+          input.form-control(type="text", v-model="team_id")
+      div.form-row
+        div.form-group.col-md-6
           | UUID
           input.form-control(type="text", v-model="userStore.uuid", :disabled="true")
       div.form-row
@@ -29,6 +33,10 @@
           input.form-control(type="text", v-model="username")
       div.form-row
         div.form-group.col-md-6
+          | Team ID
+          input.form-control(type="text", v-model="team_id")
+      div.form-row
+        div.form-group.col-md-6
           | UUID
           input.form-control(type="text", v-model="userStore.uuid", :disabled="true")
           icon(name="info-circle")
@@ -43,7 +51,6 @@
 </template>
 
 <script lang="ts">
-
 import { useUserStore } from '~/stores/user';
 import 'vue-awesome/icons/info-circle.js';
 export default {
@@ -52,29 +59,33 @@ export default {
     return {
       error: '',
       username: '',
+      team_id: '',
       userStore: useUserStore(),
-    }
+    };
   },
   mounted: async function () {
-    this.init()
+    await this.init();
   },
   methods: {
     async init() {
-      await this.userStore.ensureLoaded()
-      this.username = this.userStore.username
+      await this.userStore.ensureLoaded();
+      this.username = this.userStore.username;
+      this.team_id = this.userStore.team;
     },
     async submit() {
       if (!this.userStore.isExistOnServer) {
         await this.userStore.register({
-          username: this.username
+          username: this.username,
+          team: this.team_id,
         });
       } else {
         await this.userStore.update({
-          username: this.username
+          username: this.username,
+          team: this.team_id,
         });
       }
-      window.location.reload()
-    }
-  }
+      window.location.reload();
+    },
+  },
 };
 </script>

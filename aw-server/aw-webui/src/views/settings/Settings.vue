@@ -55,7 +55,7 @@ import DeveloperSettings from '~/views/settings/DeveloperSettings.vue';
 import Theme from '~/views/settings/Theme.vue';
 import ColorSettings from '~/views/settings/ColorSettings.vue';
 import ActivePatternSettings from '~/views/settings/ActivePatternSettings.vue';
-import GFPSServer from "@/views/settings/GFPSServerSettings.vue";
+import GFPSServer from '@/views/settings/GFPSServerSettings.vue';
 
 export default {
   name: 'Settings',
